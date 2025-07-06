@@ -1,13 +1,11 @@
-import requests
 import boto3
+import requests
 import json
 import os
-from pathlib import Path
 
 KEY = os.getenv("AWS_ACCESS_KEY_ID")
 SECRET = os.getenv("AWS_SECRET_ACCESS_KEY")
 REGION = os.getenv("AWS_REGION", "eu-central-1")
-IP_FILE_PATH = os.getenv("IP_FILE", "/tmp/.last_ip.txt")
 LAMBDA_NAME = os.getenv("LAMBDA_NAME", "UpdateMyIPSecurityGroup")
 
 if not KEY or not SECRET:
@@ -18,21 +16,31 @@ session = boto3.Session(
     aws_secret_access_key=SECRET,
     region_name=REGION,
 )
+
+ssm = session.client("ssm")
 lambda_client = session.client("lambda")
 
 def get_current_ip():
     return requests.get("https://checkip.amazonaws.com").text.strip()
 
 def read_last_ip():
-    path = Path(IP_FILE_PATH)
-    return path.read_text().strip() if path.exists() else None
+    try:
+        response = ssm.get_parameter(Name="/infra/ip/last", WithDecryption=False)
+        return response["Parameter"]["Value"]
+    except ssm.exceptions.ParameterNotFound:
+        return None
 
 def save_current_ip(ip):
     try:
-        Path(IP_FILE_PATH).write_text(ip)
+        ssm.put_parameter(
+            Name="/infra/ip/last",
+            Value=ip,
+            Type="String",
+            Overwrite=True
+        )
         print(f"✔ Saved IP: {ip}")
     except Exception as e:
-        print(f"❌ Failed to save IP: {e}")
+        print(f"❌ Failed to save IP to SSM: {e}")
 
 def trigger_lambda(ip):
     payload = {"ip": ip}
