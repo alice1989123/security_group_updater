@@ -21,8 +21,9 @@ spec:
           mountPath: /kaniko/.docker
     - name: kubectl
       image: bitnami/kubectl:latest
-      command: ["sleep"]
-      args: ["infinity"]
+      command:
+        - cat
+      tty: true
   volumes:
     - name: kaniko-secret
       emptyDir: {}
@@ -33,7 +34,7 @@ spec:
         stage('Build with Kaniko') {
             steps {
                 container('kaniko') {
-                    echo 'Build finished.'
+                    echo 'Image build finished.'
                 }
             }
         }
@@ -44,7 +45,7 @@ spec:
             }
             steps {
                 container('kubectl') {
-                    sh 'kubectl apply -f k8s/prod-deployment.yaml -n production'
+                    sh 'kubectl apply -f k8s/prod-deployment.yaml -n production_'
                 }
             }
         }
