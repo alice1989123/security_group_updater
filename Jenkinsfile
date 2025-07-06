@@ -39,15 +39,15 @@ spec:
             }
         }
 
-        stage('Deploy') {
-            when {
-                expression { env.BRANCH_NAME == 'prod' }
-            }
-            steps {
-                container('kubectl') {
-                    sh 'kubectl apply -f k8s/prod-deployment.yaml -n production_'
-                }
-            }
-        }
+        // stage('Deploy') {
+        //     when {
+        //         expression { env.BRANCH_NAME == 'prod' }
+        //     }
+        //     steps {
+        //         container('kubectl') {
+        //             sh 'kubectl apply -f k8s/prod-deployment.yaml -n production_'
+        //         }
+        //     }
+        // }
     }
 }
