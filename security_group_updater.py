@@ -59,7 +59,7 @@ def trigger_lambda(ip):
         InvocationType="Event",
         Payload=json.dumps(payload)
     )
-    logger.info(f"✅ Lambda triggered, status: {response["StatusCode"]}")
+    logger.info(f"✅ Lambda triggered, status: {response['StatusCode']}")
 
 def main():
     current_ip = get_current_ip()
