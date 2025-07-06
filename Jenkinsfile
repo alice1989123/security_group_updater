@@ -19,6 +19,10 @@ spec:
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
+    - name: kubectl
+      image: bitnami/kubectl:latest
+      command: ["sleep"]
+      args: ["infinity"]
   volumes:
     - name: kaniko-secret
       emptyDir: {}
@@ -30,6 +34,17 @@ spec:
             steps {
                 container('kaniko') {
                     echo 'Build finished.'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                expression { env.BRANCH_NAME == 'prod' }
+            }
+            steps {
+                container('kubectl') {
+                    sh 'kubectl apply -f k8s/prod-deployment.yaml -n production'
                 }
             }
         }
