@@ -33,7 +33,7 @@ spec:
   }
 
   stages {
-    stage('Build & Push') {
+    stage('Build & Push_Image') {
       steps {
         /*  No hace falta llamar a /kaniko/executor aquí:
             el contenedor ya lo está ejecutando al arrancar.
