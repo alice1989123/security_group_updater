@@ -9,7 +9,7 @@ spec:
     args:
       - --context=git://github.com/alice1989123/security_group_updater.git
       - --dockerfile=Dockerfile
-      - --destination=registry.local:31504/security_group_updater:prod
+      - --destination=registry.local:31504/security_group_updater:prod2
       - --insecure
       - --skip-tls-verify
 """) {
