@@ -9,10 +9,9 @@ spec:
     - name: kaniko
       image: gcr.io/kaniko-project/executor:latest
       command:
-        - tail
+        - /kaniko/executor
       args:
-        - -f
-        - /dev/null
+        - --help  # No hace nada, solo mantiene el contenedor corriendo
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
