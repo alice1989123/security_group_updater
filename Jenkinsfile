@@ -13,7 +13,7 @@ spec:
       args:
         - --context=git://github.com/alice1989123/security_group_updater.git
         - --dockerfile=Dockerfile
-        - --destination=registry-docker-registry.registry.svc.cluster.local:5000/security_group_updater:prod
+        - --destination=registry-docker-registry.registry.svc.cluster.local:5000/security_group_updater:prod_v2
         - --insecure
         - --skip-tls-verify
       volumeMounts:
@@ -39,15 +39,6 @@ spec:
             }
         }
 
-        // stage('Deploy') {
-        //     when {
-        //         expression { env.BRANCH_NAME == 'prod' }
-        //     }
-        //     steps {
-        //         container('kubectl') {
-        //             sh 'kubectl apply -f k8s/prod-deployment.yaml -n production_'
-        //         }
-        //     }
-        // }
+ 
     }
 }
