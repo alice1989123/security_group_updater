@@ -18,6 +18,8 @@ spec:
   environment {
     // Registry service inside the cluster (port 5000 on the Cluster-IP service)
     IMAGE_DEST = "registry-docker-registry.registry.svc.cluster.local:5000/sgu:test"
+    // short Git SHA (first 7 chars) provided by Jenkins variable GIT_COMMIT
+    GIT_SHA = "${env.GIT_COMMIT.take(7)}"
   }
 
   stages {
@@ -28,7 +30,8 @@ spec:
             /kaniko/executor \
               --context=\$(pwd) \
               --dockerfile=Dockerfile \
-              --destination=\$IMAGE_DEST \
+              --destination=\$IMAGE_BASE:\$GIT_SHA \
+              --destination=\$IMAGE_BASE:latest \\
               --insecure \
               --skip-tls-verify
           """
