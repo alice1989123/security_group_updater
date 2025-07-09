@@ -7,6 +7,7 @@ spec:
     image: gcr.io/kaniko-project/executor:latest
     command: ["/kaniko/executor"]
     args:
+      - "-v=trace"
       - "--context=git://github.com/alice1989123/security_group_updater.git"
       - "--dockerfile=Dockerfile"
       - "--destination=registry.local:31504/security_group_updater:prod"
