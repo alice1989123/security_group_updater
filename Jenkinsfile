@@ -1,13 +1,21 @@
 podTemplate(yaml: """
 apiVersion: v1
 kind: Pod
+metadata:
+  name: kaniko
 spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
-    command:
-      - cat            # keeps the container running
-    tty: true          # <-- required when command is cat
+    args: ["sleep", "infinity"]
+    volumeMounts:
+      - name: kaniko-secret
+        mountPath: /kaniko/.docker/
+  restartPolicy: Never
+  volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: kaniko-docker-config  # Must be created ahead of time
 """) {
 
   node(POD_LABEL) {
