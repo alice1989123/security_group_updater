@@ -7,16 +7,12 @@ metadata:
 spec:
   containers:
   - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
+    image: gcr.io/kaniko-project/executor:v1.19.0  # a known-good tag
     command:
-      - /kaniko/executor
+      - /busybox/sh
+      - -c
     args:
-      - "--verbosity=trace"
-      - "--context=https://github.com/alice1989123/security_group_updater.git"
-      - "--dockerfile=Dockerfile"
-      - "--destination=registry.local:31504/security_group_updater:prod"
-      - "--insecure"
-      - "--skip-tls-verify"
+      - "while true; do sleep 3600; done"
     volumeMounts:
       - name: kaniko-secret
         mountPath: /kaniko/.docker/
@@ -28,8 +24,17 @@ spec:
 """) {
     node(POD_LABEL) {
         stage('Build') {
-            /* nothing to run here – executor is the entrypoint */
-            echo 'Kaniko is building… check the container log.'
+            container('kaniko') {
+                sh '''
+                  /kaniko/executor \
+                    --verbosity=trace \
+                    --context=https://github.com/alice1989123/security_group_updater.git \
+                    --dockerfile=Dockerfile \
+                    --destination=registry.local:31504/security_group_updater:prod \
+                    --insecure \
+                    --skip-tls-verify
+                '''
+            }
         }
     }
 }
