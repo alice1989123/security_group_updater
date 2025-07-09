@@ -9,24 +9,29 @@ spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:v1.24.0-debug
-    command: ["/busybox/cat"]
+    command: ["/busybox/cat"]   # keeps the container alive for Jenkins to exec into it
     tty: true
 """
     }
   }
 
+  environment {
+    // Registry service inside the cluster (port 5000 on the Cluster-IP service)
+    IMAGE_DEST = "registry-docker-registry.registry.svc.cluster.local:5000/sgu:test"
+  }
+
   stages {
-    stage('Build') {
+    stage('Build & Push with Kaniko') {
       steps {
         container(name: 'kaniko', shell: '/busybox/sh') {
-          sh '''
+          sh """
             /kaniko/executor \
-              --context=`pwd` \
+              --context=\$(pwd) \
               --dockerfile=Dockerfile \
-              --destination=registry.local:31504/sgu:test \
+              --destination=\$IMAGE_DEST \
               --insecure \
               --skip-tls-verify
-          '''
+          """
         }
       }
     }
