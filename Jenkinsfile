@@ -2,39 +2,33 @@ podTemplate(yaml: """\
 apiVersion: v1
 kind: Pod
 metadata:
-  name: kaniko-pipeline
   namespace: jenkins
+  name: kaniko-build
 spec:
   containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:v1.19.0  # a known-good tag
-    command:
-      - /busybox/sh
-      - -c
-    args:
-      - "while true; do sleep 3600; done"
-    volumeMounts:
-      - name: kaniko-secret
-        mountPath: /kaniko/.docker/
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:v1.19.0   # pin a known-good tag
+      command: ["/kaniko/executor"]                   # entrypoint
+      args:
+        - "-v=trace"                                  # log level
+        - "--context=https://github.com/alice1989123/security_group_updater.git"
+        - "--dockerfile=Dockerfile"
+        - "--destination=registry.local:31504/security_group_updater:prod"
+        - "--insecure"
+        - "--skip-tls-verify"
+      volumeMounts:
+        - name: docker-config
+          mountPath: /kaniko/.docker/
   restartPolicy: Never
   volumes:
-    - name: kaniko-secret
+    - name: docker-config
       secret:
-        secretName: kaniko-docker-config
+        secretName: kaniko-docker-config              # `{}` is fine for an insecure registry
 """) {
+
     node(POD_LABEL) {
-        stage('Build') {
-            container('kaniko') {
-                sh '''
-                  /kaniko/executor \
-                    --verbosity=trace \
-                    --context=https://github.com/alice1989123/security_group_updater.git \
-                    --dockerfile=Dockerfile \
-                    --destination=registry.local:31504/security_group_updater:prod \
-                    --insecure \
-                    --skip-tls-verify
-                '''
-            }
+        stage('Build image with Kaniko') {
+            echo 'Kaniko is already running as container entrypoint; nothing to exec.'
         }
     }
 }
