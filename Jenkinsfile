@@ -1,34 +1,28 @@
+// Jenkinsfile (scripted pipeline)
+
 podTemplate(yaml: """\
 apiVersion: v1
 kind: Pod
-metadata:
-  namespace: jenkins
-  name: kaniko-build
 spec:
   containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:v1.19.0   # pin a known-good tag
-      command: ["/kaniko/executor"]                   # entrypoint
-      args:
-        - "-v=trace"                                  # log level
-        - "--context=https://github.com/alice1989123/security_group_updater.git"
-        - "--dockerfile=Dockerfile"
-        - "--destination=registry.local:31504/security_group_updater:prod"
-        - "--insecure"
-        - "--skip-tls-verify"
-      volumeMounts:
-        - name: docker-config
-          mountPath: /kaniko/.docker/
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    command:
+      - /kaniko/executor
+    args:
+      - "--context=git://github.com/alice1989123/security_group_updater.git"
+      - "--dockerfile=Dockerfile"
+      - "--destination=registry.local:31504/security_group_updater:prod"
+      - "--insecure"
+      - "--skip-tls-verify"
   restartPolicy: Never
-  volumes:
-    - name: docker-config
-      secret:
-        secretName: kaniko-docker-config              # `{}` is fine for an insecure registry
 """) {
 
-    node(POD_LABEL) {
-        stage('Build image with Kaniko') {
-            echo 'Kaniko is already running as container entrypoint; nothing to exec.'
+    node(POD_LABEL) {              // Jenkins attaches to the ‘jnlp’ sidecar the plugin adds
+        stage('Kaniko build') {
+            // Nothing to run here – /kaniko/executor is already running as the container’s PID 1.
+            // Just collect its exit status so the stage is marked failed if the push fails.
+            container('kaniko') { sh 'echo "Kaniko exit code: $?"' }
         }
     }
 }
