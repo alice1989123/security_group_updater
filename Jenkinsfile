@@ -7,7 +7,8 @@ spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
-    args: ["sleep", "infinity"]
+    args:
+      - "--help"   # valid dummy arg, doesn't crash
     volumeMounts:
       - name: kaniko-secret
         mountPath: /kaniko/.docker/
@@ -15,9 +16,8 @@ spec:
   volumes:
     - name: kaniko-secret
       secret:
-        secretName: kaniko-docker-config  # Must be created ahead of time
+        secretName: kaniko-docker-config
 """) {
-
   node(POD_LABEL) {
     stage('Build') {
       container('kaniko') {
