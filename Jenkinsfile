@@ -1,4 +1,4 @@
-podTemplate(yaml: """
+podTemplate(yaml: """\
 apiVersion: v1
 kind: Pod
 metadata:
@@ -9,15 +9,14 @@ spec:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:latest
     command:
-    - /kaniko/executor
+      - /kaniko/executor
     args:
-    - run
-    - --context=https://github.com/alice1989123/security_group_updater.git
-    - --dockerfile=Dockerfile
-    - --destination=registry.local:31504/security_group_updater:prod
-    - --insecure
-    - --skip-tls-verify
-    - --verbosity=trace
+      - "--verbosity=trace"
+      - "--context=https://github.com/alice1989123/security_group_updater.git"
+      - "--dockerfile=Dockerfile"
+      - "--destination=registry.local:31504/security_group_updater:prod"
+      - "--insecure"
+      - "--skip-tls-verify"
     volumeMounts:
       - name: kaniko-secret
         mountPath: /kaniko/.docker/
@@ -27,11 +26,10 @@ spec:
       secret:
         secretName: kaniko-docker-config
 """) {
-  node(POD_LABEL) {
-    stage('Build') {
-      container('kaniko') {
-        echo 'Kaniko should be building now with full trace logs...'
-      }
+    node(POD_LABEL) {
+        stage('Build') {
+            /* nothing to run here – executor is the entrypoint */
+            echo 'Kaniko is building… check the container log.'
+        }
     }
-  }
 }
