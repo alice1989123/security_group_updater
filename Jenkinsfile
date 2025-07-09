@@ -2,29 +2,49 @@ pipeline {
   agent {
     kubernetes {
       defaultContainer 'kaniko'
-      yaml """ (same YAML block) """
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.24.0-debug
+    command: ["/busybox/cat"]      # keep the container alive for Jenkins exec
+    tty: true
+"""
     }
   }
 
+  /* Base repository URL in your registry */
   environment {
-    // short Git SHA (first 7 chars) provided by Jenkins variable GIT_COMMIT
-    GIT_SHA = "${env.GIT_COMMIT.take(7)}"
-    // registry URL for all immutable images
-    IMAGE_BASE = "registry-docker-registry.registry.svc.cluster.local:5000/sgu"
+    IMAGE_BASE = 'registry-docker-registry.registry.svc.cluster.local:5000/security_group_updater'
   }
 
   stages {
+
     stage('Build & push') {
       steps {
+        /* 1️⃣  determine the short commit SHA **after** checkout */
+        script {
+          env.GIT_SHA = sh(
+            script: 'git rev-parse --short=7 HEAD',
+            returnStdout: true
+          ).trim()
+          echo "Building tag: ${env.GIT_SHA}"
+        }
+
+        /* 2️⃣  run Kaniko */
         container(name: 'kaniko', shell: '/busybox/sh') {
-          sh """
+          sh '''
             /kaniko/executor \
-              --context=\$(pwd) \
+              --context=$(pwd) \
               --dockerfile=Dockerfile \
-              --destination=\$IMAGE_BASE:\$GIT_SHA \
-              --destination=\$IMAGE_BASE:latest \\
-              --insecure --skip-tls-verify
-          """
+              --destination=$IMAGE_BASE:$GIT_SHA \
+              --destination=$IMAGE_BASE:latest \
+              --label org.opencontainers.image.revision=$GIT_SHA \
+              --insecure \
+              --skip-tls-verify
+          '''
         }
       }
     }
@@ -32,7 +52,7 @@ pipeline {
 
   post {
     success {
-      echo "Pushed \$IMAGE_BASE:\$GIT_SHA and :latest"
+      echo "✅ Pushed $IMAGE_BASE:$GIT_SHA and $IMAGE_BASE:latest"
     }
   }
 }
