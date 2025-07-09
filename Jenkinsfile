@@ -7,11 +7,10 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:v1.24.0-debug   # debug tag with BusyBox
-      imagePullPolicy: IfNotPresent
-      command: ["/busybox/cat"]
-      tty: true
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:v1.24.0-debug
+    command: ["/busybox/cat"]
+    tty: true
 """
     }
   }
@@ -19,12 +18,14 @@ spec:
   stages {
     stage('Build') {
       steps {
-        container('kaniko', '/busybox/sh') {
+        container(name: 'kaniko', shell: '/busybox/sh') {
           sh '''
             /kaniko/executor \
               --context=`pwd` \
+              --dockerfile=Dockerfile \
               --destination=registry.local:31504/sgu:test \
-              --insecure --skip-tls-verify
+              --insecure \
+              --skip-tls-verify
           '''
         }
       }
