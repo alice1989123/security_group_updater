@@ -11,13 +11,13 @@ spec:
     command:
     - /kaniko/executor
     args:
+    - run
     - --context=https://github.com/alice1989123/security_group_updater.git
     - --dockerfile=Dockerfile
     - --destination=registry.local:31504/security_group_updater:prod
     - --insecure
     - --skip-tls-verify
     - --verbosity=trace
-
     volumeMounts:
       - name: kaniko-secret
         mountPath: /kaniko/.docker/
@@ -30,7 +30,7 @@ spec:
   node(POD_LABEL) {
     stage('Build') {
       container('kaniko') {
-        echo 'Kaniko build is already running in this container via args'
+        echo 'Kaniko should be building now with full trace logs...'
       }
     }
   }
